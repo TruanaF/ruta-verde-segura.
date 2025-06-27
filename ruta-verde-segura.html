@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ruta Verde Segura</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #c8f7c5;
+      font-family: Arial, sans-serif;
+    }
+    #game {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+</head>
+<body>
+  <div id="game"></div>
+
+  <script>
+    const config = {
+      type: Phaser.AUTO,
+      width: 800,
+      height: 600,
+      backgroundColor: '#e0ffe0',
+      parent: 'game',
+      physics: {
+        default: 'arcade',
+        arcade: {
+          gravity: { y: 0 },
+          debug: false
+        }
+      },
+      scene: {
+        preload,
+        create,
+        update
+      }
+    };
+
+    let player;
+    let cursors;
+    let puntosVerdes = 0;
+    let puntosText;
+
+    const game = new Phaser.Game(config);
+
+    function preload() {
+      this.load.image('personaje', 'https://i.imgur.com/6R8x1FQ.png'); // imagen del personaje
+      this.load.image('planta', 'https://i.imgur.com/n8YbS4N.png'); // imagen bonus
+      this.load.image('piso', 'https://i.imgur.com/74pH6zj.png'); // fondo
+    }
+
+    function create() {
+      // Fondo tipo pasto
+      for (let y = 0; y < 600; y += 64) {
+        for (let x = 0; x < 800; x += 64) {
+          this.add.image(x, y, 'piso').setOrigin(0);
+        }
+      }
+
+      player = this.physics.add.sprite(100, 300, 'personaje').setScale(0.15);
+      cursors = this.input.keyboard.createCursorKeys();
+
+      // Crear plantas recolectables
+      this.plantas = this.physics.add.group({
+        key: 'planta',
+        repeat: 9,
+        setXY: { x: 150, y: 100, stepX: 70 }
+      });
+
+      this.plantas.children.iterate(function (planta) {
+        planta.setScale(0.08);
+      });
+
+      // Colisión entre jugador y plantas
+      this.physics.add.overlap(player, this.plantas, recolectarPlanta, null, this);
+
+      // Texto para mostrar puntos
+      puntosText = this.add.text(16, 16, 'Zonas verdes: 0', { fontSize: '20px', fill: '#006400' });
+    }
+
+    function update() {
+      player.setVelocity(0);
+
+      if (cursors.left.isDown) {
+        player.setVelocityX(-160);
+      } else if (cursors.right.isDown) {
+        player.setVelocityX(160);
+      }
+
+      if (cursors.up.isDown) {
+        player.setVelocityY(-160);
+      } else if (cursors.down.isDown) {
+        player.setVelocityY(160);
+      }
+    }
+
+    function recolectarPlanta(player, planta) {
+      planta.disableBody(true, true);
+      puntosVerdes += 1;
+      puntosText.setText('Zonas verdes: ' + puntosVerdes);
+    }
+  </script>
+</body>
+</html>
